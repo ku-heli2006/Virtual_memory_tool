@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Memory Optimization Tool</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-memory"></i> Virtual Memory Management Tool</h1>
+            <p class="subtitle">Visualize Paging, Segmentation, Page Faults, and Memory Fragmentation</p>
+        </header>
+
+        <div class="main-content">
+            <div class="control-panel">
+                <div class="panel-section">
+                    <h2><i class="fas fa-sliders-h"></i> Simulation Parameters</h2>
+                    
+                    <div class="input-group">
+                        <label for="physical-memory">Physical Memory Size (Pages):</label>
+                        <input type="number" id="physical-memory" value="4" min="1" max="20">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="virtual-memory">Virtual Memory Size (Pages):</label>
+                        <input type="number" id="virtual-memory" value="12" min="1" max="30">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="page-size">Page Size (KB):</label>
+                        <input type="number" id="page-size" value="4" min="1" max="64">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="reference-string">Reference String (comma separated):</label>
+                        <input type="text" id="reference-string" value="7,0,1,2,0,3,0,4,2,3,0,3,2,1,2,0,1,7,0,1">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="algorithm">Page Replacement Algorithm:</label>
+                        <select id="algorithm">
+                            <option value="FIFO">FIFO (First In First Out)</option>
+                            <option value="LRU">LRU (Least Recently Used)</option>
+                            <option value="OPTIMAL">Optimal</option>
+                            <option value="CLOCK">Clock (Second Chance)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="fragmentation-type">Fragmentation Simulation:</label>
+                        <select id="fragmentation-type">
+                            <option value="none">No Fragmentation</option>
+                            <option value="internal">Internal Fragmentation</option>
+                            <option value="external">External Fragmentation</option>
+                        </select>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button id="run-simulation" class="btn btn-primary">
+                            <i class="fas fa-play"></i> Run Simulation
+                        </button>
+                        <button id="step-simulation" class="btn btn-secondary">
+                            <i class="fas fa-step-forward"></i> Step Through
+                        </button>
+                        <button id="reset-simulation" class="btn btn-danger">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                        <button id="random-generate" class="btn btn-info">
+                            <i class="fas fa-random"></i> Random Input
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h2><i class="fas fa-chart-bar"></i> Statistics</h2>
+                    <div id="stats-display">
+                        <div class="stat-item">
+                            <span class="stat-label">Page Faults:</span>
+                            <span id="page-faults" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Hit Ratio:</span>
+                            <span id="hit-ratio" class="stat-value">0%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Memory Utilization:</span>
+                            <span id="memory-utilization" class="stat-value">0%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Fragmentation:</span>
+                            <span id="fragmentation" class="stat-value">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="visualization-area">
+                <div class="visualization-section">
+                    <h2><i class="fas fa-project-diagram"></i> Memory Visualization</h2>
+                    <div class="visualization-container">
+                        <div class="memory-visualization">
+                            <h3>Physical Memory (RAM)</h3>
+                            <div id="physical-memory-viz" class="memory-grid"></div>
+                        </div>
+                        <div class="memory-visualization">
+                            <h3>Virtual Memory (Disk)</h3>
+                            <div id="virtual-memory-viz" class="memory-grid"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="visualization-section">
+                    <h2><i class="fas fa-exchange-alt"></i> Page Table & Reference String</h2>
+                    <div class="page-table-container">
+                        <div class="page-table">
+                            <h3>Page Table</h3>
+                            <table id="page-table">
+                                <thead>
+                                    <tr>
+                                        <th>Page #</th>
+                                        <th>Frame #</th>
+                                        <th>Valid Bit</th>
+                                        <th>Reference Bit</th>
+                                        <th>Modified Bit</th>
+                                        <th>Last Used</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="page-table-body"></tbody>
+                            </table>
+                        </div>
+                        <div class="reference-string">
+                            <h3>Reference String Progress</h3>
+                            <div id="reference-progress"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="visualization-section">
+                    <h2><i class="fas fa-chart-line"></i> Performance Graphs</h2>
+                    <div class="charts-container">
+                        <div class="chart">
+                            <canvas id="faults-chart"></canvas>
+                        </div>
+                        <div class="chart">
+                            <canvas id="comparison-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="visualization-section">
+                    <h2><i class="fas fa-code"></i> Segmentation Visualization</h2>
+                    <div class="segmentation-container">
+                        <div class="segment-controls">
+                            <button id="add-segment" class="btn btn-small">
+                                <i class="fas fa-plus"></i> Add Segment
+                            </button>
+                            <button id="clear-segments" class="btn btn-small btn-danger">
+                                <i class="fas fa-trash"></i> Clear Segments
+                            </button>
+                        </div>
+                        <div id="segmentation-viz"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="algorithm-explanation">
+            <h2><i class="fas fa-info-circle"></i> Algorithm Explanations</h2>
+            <div class="algorithm-cards">
+                <div class="card" data-algorithm="FIFO">
+                    <h3>FIFO</h3>
+                    <p>Replaces the oldest page in memory. Simple but suffers from Belady's anomaly.</p>
+                </div>
+                <div class="card" data-algorithm="LRU">
+                    <h3>LRU</h3>
+                    <p>Replaces the least recently used page. Good performance but requires hardware support.</p>
+                </div>
+                <div class="card" data-algorithm="OPTIMAL">
+                    <h3>Optimal</h3>
+                    <p>Replaces the page that won't be used for the longest time. Theoretical optimal algorithm.</p>
+                </div>
+                <div class="card" data-algorithm="CLOCK">
+                    <h3>Clock</h3>
+                    <p>Circular buffer with reference bits. Good approximation of LRU with less overhead.</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Virtual Memory Optimization Tool | Created for Operating Systems Study</p>
+            <p class="footer-note">Use this tool to understand paging, segmentation, page replacement algorithms, and memory fragmentation</p>
+        </footer>
+    </div>
+
+    <script src="algorithms.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
